@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     [Header("Walking")]
     [Tooltip("The speed of walking (meters per second)")] public float walkSpeed;
     [Tooltip("The acceleration if velocity < walkspeed or no horizontal input is recieved")] public float walkAcc;
+    [HideInInspector] public bool movementEnabled;
 
     [Header("Sprinting")]
     [Tooltip("Applied when shift is pressed")] public float sprintSpeed;
@@ -29,15 +30,21 @@ public class PlayerController : MonoBehaviour
     public GameSettings gameSettings;
     public Transform staminaUI;
     private Rigidbody2D rb;
+    [HideInInspector] public Interactable interactable;
     
     void Start() {
         rb = GetComponent<Rigidbody2D>();
         stamina = 1;
+        movementEnabled = true;
     }
     
     void FixedUpdate() {
         bool sprinting = Input.GetButton("Sprint") && staminaState;
-        targetVel = Input.GetAxisRaw("Horizontal") * (sprinting ? sprintSpeed : walkSpeed);
+        if (movementEnabled) {
+            targetVel = Input.GetAxisRaw("Horizontal") * (sprinting ? sprintSpeed : walkSpeed);
+        } else {
+            targetVel = 0;
+        }
 
         // Calculate acceleration and stamina change
         float acc;
@@ -72,11 +79,34 @@ public class PlayerController : MonoBehaviour
         // Jump and ground check
         if (Input.GetButton("Jump")) {
             RaycastHit2D hit;
-            hit = Physics2D.BoxCast(transform.position, Vector2.one, 0, -Vector2.up, 0.51f);
+            hit = Physics2D.BoxCast(transform.position, Vector2.one * 0.9f, 0, -Vector2.up, 0.6f);
             if (hit) {
-                if (hit.transform.CompareTag("Ground") && rb.velocity.y == 0) {
+                if (rb.velocity.y == 0 && movementEnabled) {
                     rb.AddForce(Vector2.up * jumpForce);
                 }
+            }
+        }
+
+        // Interacting
+        if (Input.GetButton("Interact") && movementEnabled) {
+            if (interactable) {
+                interactable.interact();
+            } else {
+                print("No interactable!");
+            }
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D col) {
+        if (col.gameObject.CompareTag("Interactable") && movementEnabled) {
+            interactable = col.gameObject.GetComponent<Interactable>();
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D col) {
+        if (interactable) {
+            if (col.gameObject == interactable.gameObject && movementEnabled) {
+                interactable = null;
             }
         }
     }
