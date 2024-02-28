@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
-    public enum types{
+    public enum types
+    {
         door,
         ladder
     }
@@ -17,44 +18,55 @@ public class Interactable : MonoBehaviour
     private Transform player;
     private Animator anim;
     private CameraController cam;
-    public void Start() {
+    public void Start()
+    {
         player = GameObject.Find("Player").transform;
         anim = player.GetComponent<Animator>();
-        cam = GameObject.Find("Main Camera").GetComponent<CameraController>();
+        cam = CameraController.instance;
     }
-    public void interact() {
+    public void interact()
+    {
         // Called by player when interacting with object
         print("Interacted with " + gameObject.name);
-        if (type == types.door) {
+        if (type == types.door)
+        {
             interactStart();
             anim.SetTrigger("door");
-        } else if (type == types.ladder) {
+        }
+        else if (type == types.ladder)
+        {
             interactStart();
             anim.SetTrigger("ladder");
         }
     }
-    private void interactStart() {
+    private void interactStart()
+    {
         // Moves player to object and blocks movement
         player.position = transform.position + (Vector3)pos;
-        player.GetComponent<PlayerController>().movementEnabled = false;
+        PlayerController.instance.movementEnabled = false;
         player.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
     }
 
     // Functions called by animator
-    public void moveToExit() {
+    public void moveToExit()
+    {
         player.position = exit.transform.position + (Vector3)exit.pos;
         cam.room = exit.GetComponentInParent<Room>();
         float xPos;
-        if (cam.room.dynamicCam) {
+        if (cam.room.dynamicCam)
+        {
             xPos = Mathf.Clamp(player.position.x, cam.room.transform.position.x + cam.room.posRange.x, cam.room.transform.position.x + cam.room.posRange.y);
-        } else {
+        }
+        else
+        {
             xPos = cam.room.transform.position.x;
         }
         cam.transform.position = new Vector3(xPos, cam.room.transform.position.y, -10);
         print("Moving!");
     }
-    public void arriveAtExit() {
-        player.GetComponent<PlayerController>().movementEnabled = true;
-        player.GetComponent<PlayerController>().interactable = exit;
+    public void arriveAtExit()
+    {
+        PlayerController.instance.movementEnabled = true;
+        PlayerController.instance.interactable = exit;
     }
 }
