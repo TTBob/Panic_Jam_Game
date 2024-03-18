@@ -68,5 +68,9 @@ public class Interactable : MonoBehaviour
     {
         PlayerController.instance.movementEnabled = true;
         PlayerController.instance.interactable = exit;
+        TextBoxMaster.instance.ShowTextBox(new TextBoxClass
+        {
+            message = "You have transitioned from one room to the other"
+        }, true);
     }
 }
